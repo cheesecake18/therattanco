@@ -1,7 +1,8 @@
 <?php
-require 'db.php';
+require_once 'classes/Cart.php';
 session_start();
 $logged_in = isset($_SESSION['user_id']);
+$cartObj = new Cart($logged_in ? $_SESSION['user_id'] : null);
 ?>
 <!DOCTYPE html>
 <html lang="en">

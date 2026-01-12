@@ -1,15 +1,17 @@
 <?php
-require 'db.php';
+require_once 'classes/User.php';
 session_start();
+
+$userObj = new User();
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $username = $_POST['username'];
     $email = $_POST['email'];
-    $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
+    $password = $_POST['password'];
 
-    $stmt = $pdo->prepare("INSERT INTO users (username, email, password) VALUES (?, ?, ?)");
-    if ($stmt->execute([$username, $email, $password])) {
-        $_SESSION['user_id'] = $pdo->lastInsertId();
+    $userId = $userObj->register($username, $email, $password);
+    if ($userId) {
+        $_SESSION['user_id'] = $userId;
         $_SESSION['username'] = $username;
         header('Location: checkout.php');
         exit;

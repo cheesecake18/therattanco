@@ -1,5 +1,5 @@
 <?php
-require 'db.php';
+require_once 'classes/User.php';
 session_start();
 
 if (!isset($_SESSION['user_id'])) {
@@ -8,40 +8,39 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 $user_id = $_SESSION['user_id'];
+$userObj = new User();
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if (isset($_POST['update_personal'])) {
         $email = $_POST['email'];
-        $stmt = $pdo->prepare("UPDATE users SET email = ? WHERE id = ?");
-        $stmt->execute([$email, $user_id]);
-        $message = "Personal info updated.";
+        if ($userObj->updateEmail($user_id, $email)) {
+            $message = "Personal info updated.";
+        }
     } elseif (isset($_POST['update_password'])) {
-        $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
-        $stmt = $pdo->prepare("UPDATE users SET password = ? WHERE id = ?");
-        $stmt->execute([$password, $user_id]);
-        $message = "Password updated.";
+        $password = $_POST['password'];
+        if ($userObj->updatePassword($user_id, $password)) {
+            $message = "Password updated.";
+        }
     } elseif (isset($_POST['update_address'])) {
         $province = $_POST['province'];
         $city = $_POST['city'];
         $barangay = $_POST['barangay'];
         $street = $_POST['street'];
-        $stmt = $pdo->prepare("UPDATE users SET default_province = ?, default_city = ?, default_barangay = ?, default_street = ? WHERE id = ?");
-        $stmt->execute([$province, $city, $barangay, $street, $user_id]);
-        $message = "Default shipping address updated.";
+        if ($userObj->updateAddress($user_id, $province, $city, $barangay, $street, 'default')) {
+            $message = "Default shipping address updated.";
+        }
     } elseif (isset($_POST['update_alt_address'])) {
         $alt_province = $_POST['alt_province'];
         $alt_city = $_POST['alt_city'];
         $alt_barangay = $_POST['alt_barangay'];
         $alt_street = $_POST['alt_street'];
-        $stmt = $pdo->prepare("UPDATE users SET alt_province = ?, alt_city = ?, alt_barangay = ?, alt_street = ? WHERE id = ?");
-        $stmt->execute([$alt_province, $alt_city, $alt_barangay, $alt_street, $user_id]);
-        $message = "Alternate shipping address updated.";
+        if ($userObj->updateAddress($user_id, $alt_province, $alt_city, $alt_barangay, $alt_street, 'alt')) {
+            $message = "Alternate shipping address updated.";
+        }
     }
 }
 
-$stmt = $pdo->prepare("SELECT * FROM users WHERE id = ?");
-$stmt->execute([$user_id]);
-$user = $stmt->fetch(PDO::FETCH_ASSOC);
+$user = $userObj->getUserById($user_id);
 
 if (!$user) {
     echo "User not found.";

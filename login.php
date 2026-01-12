@@ -1,16 +1,16 @@
 <?php
-require 'db.php';
+require_once 'classes/User.php';
 session_start();
+
+$userObj = new User();
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $email = $_POST['email'];
     $password = $_POST['password'];
 
-    $stmt = $pdo->prepare("SELECT * FROM users WHERE email = ?");
-    $stmt->execute([$email]);
-    $user = $stmt->fetch();
+    $user = $userObj->login($email, $password);
 
-    if ($user && password_verify($password, $user['password'])) {
+    if ($user) {
         $_SESSION['user_id'] = $user['id'];
         $_SESSION['username'] = $user['username'];
         header('Location: checkout.php');

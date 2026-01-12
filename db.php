@@ -1,13 +1,6 @@
 <?php
-$host = 'localhost';
-$dbname = 'therattanco_db';
-$username = 'root';
-$password = '';
+require_once 'classes/Database.php';
 
-try {
-    $pdo = new PDO("mysql:host=$host;dbname=$dbname", $username, $password);
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-} catch (PDOException $e) {
-    die("Database connection failed: " . $e->getMessage());
-}
+// For backward compatibility, set $pdo
+$pdo = Database::getInstance()->getConnection();
 ?>

@@ -1,8 +1,9 @@
 <?php
-require 'db.php';
+require_once 'classes/Product.php';
 session_start();
-$categories = $pdo->query("SELECT DISTINCT category FROM inventory ORDER BY category")->fetchAll(PDO::FETCH_COLUMN);
-$products = $pdo->query("SELECT * FROM inventory ORDER BY item_id")->fetchAll(PDO::FETCH_ASSOC);
+$productObj = new Product();
+$categories = $productObj->getCategories();
+$products = $productObj->getAllProducts();
 $logged_in = isset($_SESSION['user_id']);
 ?>
 <!DOCTYPE html>

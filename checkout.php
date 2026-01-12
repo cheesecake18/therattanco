@@ -1,5 +1,5 @@
 <?php
-require 'db.php';
+require_once 'classes/User.php';
 session_start();
 
 if (!isset($_SESSION['user_id'])) {
@@ -8,9 +8,16 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 $user_id = $_SESSION['user_id'];
-$stmt = $pdo->prepare("SELECT default_province, default_city, default_barangay, default_street, last_payment, contact FROM users WHERE id = ?");
-$stmt->execute([$user_id]);
-$default = $stmt->fetch(PDO::FETCH_ASSOC);
+$userObj = new User();
+$user = $userObj->getUserById($user_id);
+$default = [
+    'default_province' => $user['default_province'],
+    'default_city' => $user['default_city'],
+    'default_barangay' => $user['default_barangay'],
+    'default_street' => $user['default_street'],
+    'last_payment' => $user['last_payment'],
+    'contact' => $user['contact']
+];
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $cart = json_decode($_POST['cart'], true);
@@ -34,13 +41,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $online_payments = ['gcash', 'maya', 'grabpay', 'coins', 'qrph', 'credit'];
 
     // Save last payment method and contact
-    try {
-        $stmt = $pdo->prepare("UPDATE users SET last_payment = ?, contact = ? WHERE id = ?");
-        $stmt->execute([$payment, $contact, $user_id]);
-    } catch (PDOException $e) {
-        // Log error or handle
-        error_log("Failed to update user: " . $e->getMessage());
-    }
+    $userObj->updateContact($user_id, $contact);
+    $userObj->updateLastPayment($user_id, $payment);
     if ($payment == 'cod') {
         header("Location: payment.php?method=cod&total=$total");
         exit;
@@ -56,8 +58,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         echo "Payment: $payment<br>";
 
         if (isset($_POST['save_default'])) {
-            $stmt = $pdo->prepare("UPDATE users SET default_province = ?, default_city = ?, default_barangay = ?, default_street = ? WHERE id = ?");
-            $stmt->execute([$province, $city, $barangay, $street, $user_id]);
+            $userObj->updateAddress($user_id, $province, $city, $barangay, $street, 'default');
             echo "Default shipping address saved.<br>";
         }
 
